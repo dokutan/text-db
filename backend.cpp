@@ -42,7 +42,7 @@ class plaintext_database{
 	int add_item( std::string item );
 	int add_item_key( std::string item, std::string key,
 		std::string value );
-		
+	
 	int write_to_cout();
 	int show_item( std::string item );
 	int show_item_key( std::string item, std::string key );
@@ -53,6 +53,8 @@ class plaintext_database{
 	
 	int set_color( bool use_color );
 	int set_show_number( bool show_number );
+	
+	int copy_item( std::string source, std::string dest );
 };
 
 // load from file
@@ -320,5 +322,18 @@ int plaintext_database::set_color( bool use_color ){
 // setter for _show_number
 int plaintext_database::set_show_number( bool show_number ){
 	_show_number = show_number;
+	return 0;
+}
+
+// copy item
+int plaintext_database::copy_item( std::string source, std::string dest ){
+	
+	if( _collection.find(source) != _collection.end() ){
+		_collection[dest] = _collection[source];
+	} else{
+		throw std::invalid_argument( "Item "+source+" doesn't exist" );
+		return 1;
+	}
+	
 	return 0;
 }

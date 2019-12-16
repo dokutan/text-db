@@ -47,6 +47,7 @@ int main( int argc, char* argv[] ){
 	po::options_description input_options_desc("Input options");
 	input_options_desc.add_options()
 		("add,a", po::value< vector<string> >()->multitoken(), "Add item, key or value")
+		("copy,C", po::value< vector<string> >()->multitoken(), "Copy item")
 		("delete,d", po::value< vector<string> >()->multitoken(), "Delete item or key");
 	
 	// declare commandline options: output
@@ -137,6 +138,20 @@ int main( int argc, char* argv[] ){
 		} else if( parameters.size() == 3 ){
 			// add item with key = value
 			db.add_item_key( parameters[0], parameters[1], parameters[2] );
+			db.write_to_file( file );
+		} else{
+			throw invalid_argument( "Wrong number of arguments" );
+		}
+		
+	}
+	// copy item
+	if( var_map.count("copy") ){
+		
+		vector< string > parameters = var_map["copy"].as< vector< string > >();
+		
+		if( parameters.size() == 2 ){
+			// copy item
+			db.copy_item( parameters[0], parameters[1] );
 			db.write_to_file( file );
 		} else{
 			throw invalid_argument( "Wrong number of arguments" );
