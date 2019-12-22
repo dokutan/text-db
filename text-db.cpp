@@ -80,6 +80,8 @@ int main( int argc, char* argv[] ){
 	if( var_map.count("help") ){
 		// print help
 		cout << all_options_desc;
+		cout << "\nSupported sort arguments:\n"
+		" key\n key-reverse\n num-keys\n num-keys-reverse\n";
 		return 0;
 	}
 	

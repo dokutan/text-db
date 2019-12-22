@@ -61,6 +61,10 @@ text-db ⟨file⟩ --with ⟨key⟩
 ```
 text-db ⟨file⟩ --with ⟨key⟩ ⟨value⟩
 ```
+- Show all items sorted by number of keys
+```
+text-db ⟨file⟩ --show-all --item-order num-keys
+```
 
 ## Limitations
 - When adding or deleting in a collection the whole file gets rewritten to keep the structure intact.

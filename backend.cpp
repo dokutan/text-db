@@ -459,11 +459,11 @@ int plaintext_database::sort( std::vector<std::string> sort_options ){
 	std::pair< std::string, std::map< std::string, std::string> > & b){ 
 		return a.first > b.first;
 	};
-	auto cmp_num_items = []( std::pair< std::string, std::map< std::string, std::string> > & a,
+	auto cmp_num_keys = []( std::pair< std::string, std::map< std::string, std::string> > & a,
 	std::pair< std::string, std::map< std::string, std::string> > & b){ 
 		return a.second.size() < b.second.size();
 	};
-	auto cmp_num_items_reverse = []( std::pair< std::string, std::map< std::string, std::string> > & a,
+	auto cmp_num_keys_reverse = []( std::pair< std::string, std::map< std::string, std::string> > & a,
 	std::pair< std::string, std::map< std::string, std::string> > & b){ 
 		return a.second.size() > b.second.size();
 	};
@@ -473,10 +473,10 @@ int plaintext_database::sort( std::vector<std::string> sort_options ){
 		std::sort( _collection_vector.begin(), _collection_vector.end(), cmp_key );
 	} else if( sort_options[0] == "key-reverse" ){
 		std::sort( _collection_vector.begin(), _collection_vector.end(), cmp_key_reverse );
-	} else if( sort_options[0] == "num-items" ){
-		std::sort( _collection_vector.begin(), _collection_vector.end(), cmp_num_items );
-	} else if( sort_options[0] == "num-items-reverse" ){
-		std::sort( _collection_vector.begin(), _collection_vector.end(), cmp_num_items_reverse );
+	} else if( sort_options[0] == "num-keys" ){
+		std::sort( _collection_vector.begin(), _collection_vector.end(), cmp_num_keys );
+	} else if( sort_options[0] == "num-keys-reverse" ){
+		std::sort( _collection_vector.begin(), _collection_vector.end(), cmp_num_keys_reverse );
 	} else{
 		throw std::invalid_argument( "Invalid sort option" );
 		return 1;
