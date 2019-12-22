@@ -27,7 +27,7 @@
 
 #include "backend.cpp"
 
-// g++ text-db_boost.cpp -o text-db_boost -lboost_program_options
+// g++ text-db.cpp -o text-db -lboost_program_options
 
 int main( int argc, char* argv[] ){
 	
@@ -58,7 +58,9 @@ int main( int argc, char* argv[] ){
 		("with,w", po::value< vector<string> >()->multitoken(), "Show items with key")
 		("without,W", po::value< vector<string> >()->multitoken(), "Show items without key")
 		("number,n", po::value< bool >()->default_value(true), "Show number of items")
-		("color,c", po::value< bool >()->default_value(true), "Use colored output");
+		("color,c", po::value< bool >()->default_value(true), "Use colored output")
+		("item-order,i", po::value< vector<string> >()->multitoken(), "Sort items in output")
+		("item-order-file,I", po::value< vector<string> >()->multitoken(), "Sort items in output and file");
 	
 	// combine all options
 	po::options_description all_options_desc("Allowed options");
@@ -87,12 +89,13 @@ int main( int argc, char* argv[] ){
 	// main object
 	plaintext_database db;
 	
-	// open storage file
+	// load from storage file
 	string file = "";
 	if( var_map.count("file") ){
 		file = var_map["file"].as< string >();
 		db.load_from_file( file );
 	}
+	bool write_file = false;
 	
 	// apply output options
 	if( var_map.count("color") ){
@@ -112,11 +115,11 @@ int main( int argc, char* argv[] ){
 		if( parameters.size() == 1 ){
 			// delete item
 			db.delete_item( parameters[0] );
-			db.write_to_file( file );
+			write_file = true;
 		} else if( parameters.size() == 2 ){
 			// delete key from item
 			db.delete_item_key( parameters[0], parameters[1] );
-			db.write_to_file( file );
+			write_file = true;
 		} else{
 			throw invalid_argument( "Wrong number of arguments" );
 		}
@@ -130,15 +133,15 @@ int main( int argc, char* argv[] ){
 		if( parameters.size() == 1 ){
 			// add item
 			db.add_item( parameters[0] );
-			db.write_to_file( file );
+			write_file = true;
 		} else if( parameters.size() == 2 ){
 			// add item with key
 			db.add_item_key( parameters[0], parameters[1] );
-			db.write_to_file( file );
+			write_file = true;
 		} else if( parameters.size() == 3 ){
 			// add item with key = value
 			db.add_item_key( parameters[0], parameters[1], parameters[2] );
-			db.write_to_file( file );
+			write_file = true;
 		} else{
 			throw invalid_argument( "Wrong number of arguments" );
 		}
@@ -152,7 +155,36 @@ int main( int argc, char* argv[] ){
 		if( parameters.size() == 2 ){
 			// copy item
 			db.copy_item( parameters[0], parameters[1] );
-			db.write_to_file( file );
+			write_file = true;
+		} else{
+			throw invalid_argument( "Wrong number of arguments" );
+		}
+		
+	}
+	// sort output?
+	if( var_map.count("item-order") ){
+		
+		vector< string > parameters = var_map["item-order"].as< vector< string > >();
+		
+		if( parameters.size() == 1 ){
+			// copy item
+			db.sort( parameters );
+			db.set_cout_use_sorted( true );
+		} else{
+			throw invalid_argument( "Wrong number of arguments" );
+		}
+		
+	}
+	// sort output and file?
+	if( var_map.count("item-order-file") ){
+		
+		vector< string > parameters = var_map["item-order-file"].as< vector< string > >();
+		
+		if( parameters.size() == 1 ){
+			// copy item
+			db.sort( parameters );
+			db.set_cout_use_sorted( true );
+			db.set_file_use_sorted( true );
 		} else{
 			throw invalid_argument( "Wrong number of arguments" );
 		}
@@ -208,6 +240,11 @@ int main( int argc, char* argv[] ){
 			throw invalid_argument( "Wrong number of arguments" );
 		}
 		
+	}
+	
+	// write to file
+	if( write_file ){
+		db.write_to_file( file );
 	}
 	
 	} catch( exception &e ){
