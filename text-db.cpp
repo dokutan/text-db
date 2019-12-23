@@ -60,7 +60,8 @@ int main( int argc, char* argv[] ){
 		("number,n", po::value< bool >()->default_value(true), "Show number of items")
 		("color,c", po::value< bool >()->default_value(true), "Use colored output")
 		("item-order,i", po::value< vector<string> >()->multitoken(), "Sort items in output")
-		("item-order-file,I", po::value< vector<string> >()->multitoken(), "Sort items in output and file");
+		("item-order-file,I", po::value< vector<string> >()->multitoken(), "Sort items in output and file")
+		("force-write,F", po::value< vector<string> >()->multitoken(), "Write to file even when no changes were made");
 	
 	// combine all options
 	po::options_description all_options_desc("Allowed options");
@@ -243,12 +244,16 @@ int main( int argc, char* argv[] ){
 		}
 		
 	}
-	
+	// force writing to file
+	if( var_map.count("force-write") ){
+		write_file = true;
+	}
 	// write to file
 	if( write_file ){
 		db.write_to_file( file );
 	}
 	
+	// error handling
 	} catch( exception &e ){
 		cout << "Error: " << e.what() << "\n";
 		return 1;
