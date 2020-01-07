@@ -2,7 +2,7 @@
 # This script can be used to add information about images in a directory to a file
 # GPLv3 or later
 # Depends on Imagemagick
-# Usage: ./text-db-imag-scraper path/to/directory >> file
+# Usage: ./text-db-image-scraper path/to/directory >> file
 
 for file in $1/*
 do
