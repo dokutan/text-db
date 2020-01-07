@@ -61,7 +61,7 @@ int main( int argc, char* argv[] ){
 		("color,c", po::value< bool >()->default_value(true), "Use colored output")
 		("item-order,i", po::value< vector<string> >()->multitoken(), "Sort items in output")
 		("item-order-file,I", po::value< vector<string> >()->multitoken(), "Sort items in output and file")
-		("force-write,F", po::value< vector<string> >()->multitoken(), "Write to file even when no changes were made");
+		("force-write,F", "Write to file even when no changes were made");
 	
 	// combine all options
 	po::options_description all_options_desc("Allowed options");
