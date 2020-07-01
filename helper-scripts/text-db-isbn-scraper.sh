@@ -7,5 +7,5 @@
 
 for isbn in $(cat "$1")
 do
-	isbn_meta "$isbn" openl | tail -n+2 | tr -s ' ' | sed 's/^/\t/;s/: /\t/;s/\tTitle\t//'
+	isbn_meta "$isbn" | tail -n+2 | tr -s ' ' | sed 's/^/\t/;s/: /\t/;s/\tTitle\t//'
 done
