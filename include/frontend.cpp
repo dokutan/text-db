@@ -505,6 +505,12 @@ void process_input( std::string& input, textdb& db, std::map< std::string, std::
 		
 	}
 	
+	// export to graphviz
+	else if( std::regex_match( input, std::regex("export[[:s:]]+gv") ) )
+	{
+		db.to_graphviz( std::cout );
+	}
+	
 	else
 		output << "Unknown command, type help for more info\n";
 	

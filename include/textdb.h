@@ -62,6 +62,9 @@ class textdb
 		/// Delete the contents of the database
 		void clear();
 		
+		/// Export database in graphviz format
+		void to_graphviz( std::ostream& output );
+		
 	private:
 		
 		/// The delimiter used in the file
@@ -73,7 +76,8 @@ class textdb
 		std::map< std::string, std::string > _colors =
 		{
 			{ "key", "\e[31m" },
-			{ "subkey", "\e[31m" },
+			//{ "subkey", "\e[31m" },
+			{ "subkey", "" },
 			{ "value", "\e[36m" },
 			{ "subvalue", "\e[36m" },
 			{ "reset", "\e[0m" }

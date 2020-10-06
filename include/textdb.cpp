@@ -64,7 +64,7 @@ void textdb::print( std::ostream& output, bool color )
 
 void textdb::print_item( std::ostream& output, bool color, const path& itempath )
 {
-	// print all items
+	// iterate over all items
 	for( auto item : _items )
 	{
 		if( !compare_vectors( item.first, itempath ) )
@@ -170,3 +170,60 @@ void textdb::clear()
 	_items.clear();
 }
 
+void textdb::to_graphviz( std::ostream& output )
+{
+	
+	output << "digraph {\n";
+	
+	// graph state
+	bool in_subgraph = false;
+	std::string item_name = "";
+	// size_t item_number = 0;
+	
+	// iterate over all items
+	for( auto item : _items )
+	{
+		
+		// if top level item
+		if( item.first.size() == 1 )
+		{
+			
+			if( in_subgraph )
+				output << "\t}\n";
+			
+			// TODO! " in item name is not handled
+			item_name = item.first.back();
+			output << "\tsubgraph \"" << item_name << "\" {\n";
+			output << "\t\t\"" << item_name << "\";\n";
+			in_subgraph = true;
+			
+		}
+		else
+		{
+			output << "\t\t";
+			bool first = true;
+			
+			// iterate over item path
+			for( auto element : item.first )
+			{
+				if( !first )
+					output << " -> ";
+				else
+					first = false;
+				
+				output << "\"" << element << "\"";
+			}
+			
+			output << ";\n";
+		}
+		
+	}
+	
+	
+	if( in_subgraph )
+		output << "\t}\n";
+		
+	output << "}\n";
+	
+	
+}

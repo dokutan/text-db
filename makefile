@@ -11,7 +11,6 @@ build: text-db.o textdb.o dbitem.o utils.o frontend.o
 	$(CC) *.o -o text-db $(CC_OPTIONS)
 
 install:
-	g++ text-db.cpp -o text-db -lboost_program_options && \
 	cp ./text-db $(BIN_DIR)/text-db
 
 uninstall:
