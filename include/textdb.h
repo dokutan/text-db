@@ -24,15 +24,45 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <utility>
 #include <map>
 #include <memory>
-
-#include "utils.h"
+#include <regex>
 
 /// This class represents a database / file
 class textdb
 {
+	
+	// public static functions 
+	public:
+		/// Splits a string into a vector at the given delimiter
+		static int string_to_vector( std::string& in, std::vector< std::string >& out, char delimiter );
+
+		/// Counts the number of consecutive characters c at the front of string in
+		static unsigned int count_char_at_front( std::string& in, char c );
+
+		/** Compare vectors by element
+		 * checks only the first v2.size() elements from v1
+		 * \returns false if v2.size() > v1.size() or different elements in v2 and v1
+		 */
+		static bool compare_vectors( std::vector< std::string > v1, std::vector< std::string > v2 );
+
+		/** Compare vectors by element
+		 * \returns false if v1.size() != v2.size() or different elements in v2 and v1
+		 */
+		static bool compare_vectors_exact( std::vector< std::string > v1, std::vector< std::string > v2 );
+
+		/** Compare vectors by element, treats elements of v2 as regex,
+		 * checks only the first v2.size() elements from v1
+		 * \returns false if v2.size() > v1.size() or v2 doesn't describe v1
+		 */
+		static bool compare_vectors_regex( std::vector< std::string > v1, std::vector< std::string > v2 );
+
+		/** Compare vectors by element, treats elements of v2 as regex
+		 * \returns false if v1.size() != v2.size() or v2 doesn't describe v1
+		 */
+		static bool compare_vectors_regex_exact( std::vector< std::string > v1, std::vector< std::string > v2 );
 	
 	public:
 		

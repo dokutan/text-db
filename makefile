@@ -1,7 +1,7 @@
 # variables
 BIN_DIR = /usr/bin
 CC = g++
-CC_OPTIONS := -Wall -Wextra -O2
+CC_OPTIONS := -Wall -Wextra -O2 -std=c++17
 
 # version string
 VERSION_STRING = "\"0.1α\""

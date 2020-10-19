@@ -50,7 +50,8 @@ int main( int argc, char* argv[] )
 	std::map< std::string, std::string > options =
 	{
 		{ "ps1", ">> " },
-		{ "color", "on" }
+		{ "color", "on" },
+		{ "regex", "on" }
 	};
 	
 	// check arguments, load file
@@ -59,7 +60,7 @@ int main( int argc, char* argv[] )
 		// --help
 		if( strcmp( argv[1], "--help" ) == 0 || strcmp( argv[1], "-h" ) == 0 )
 		{
-			print_help( std::cout );
+			command_help( std::cout );
 			return 0;
 		}
 		

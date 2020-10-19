@@ -18,9 +18,10 @@
 
 // Utility functions
 
-#include "utils.h"
+//#include "utils.h"
+#include "textdb.h"
 
-int string_to_vector( std::string& in, std::vector< std::string >& out, char delimiter )
+int textdb::string_to_vector( std::string& in, std::vector< std::string >& out, char delimiter )
 {
 	std::stringstream instream( in );
 	out.clear();
@@ -31,7 +32,7 @@ int string_to_vector( std::string& in, std::vector< std::string >& out, char del
 	return out.size();
 }
 
-unsigned int count_char_at_front( std::string& in, char c )
+unsigned int textdb::count_char_at_front( std::string& in, char c )
 {
 	unsigned int count = 0;
 	for( auto i : in )
@@ -45,7 +46,7 @@ unsigned int count_char_at_front( std::string& in, char c )
 	return count;
 }
 
-bool compare_vectors( std::vector< std::string > v1, std::vector< std::string > v2 )
+bool textdb::compare_vectors( std::vector< std::string > v1, std::vector< std::string > v2 )
 {
 	if( v2.size() > v1.size() )
 		return false;
@@ -59,7 +60,21 @@ bool compare_vectors( std::vector< std::string > v1, std::vector< std::string > 
 	return true;
 }
 
-bool compare_vectors_regex( std::vector< std::string > v1, std::vector< std::string > v2 )
+bool textdb::compare_vectors_exact( std::vector< std::string > v1, std::vector< std::string > v2 )
+{
+	if( v2.size() != v1.size() )
+		return false;
+	
+	for( size_t i = 0; i < v2.size(); i++ )
+	{
+		if( v1.at(i) != v2.at(i) )
+			return false;
+	}
+	
+	return true;
+}
+
+bool textdb::compare_vectors_regex( std::vector< std::string > v1, std::vector< std::string > v2 )
 {
 	if( v2.size() > v1.size() )
 		return false;
@@ -73,7 +88,8 @@ bool compare_vectors_regex( std::vector< std::string > v1, std::vector< std::str
 	return true;
 }
 
-bool compare_vectors_regex_exact( std::vector< std::string > v1, std::vector< std::string > v2 )
+// TODO! rename → *_size
+bool textdb::compare_vectors_regex_exact( std::vector< std::string > v1, std::vector< std::string > v2 )
 {
 	if( v2.size() != v1.size() )
 		return false;
