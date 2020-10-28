@@ -155,10 +155,10 @@ void process_input( std::string& input, textdb& db, std::map< std::string, std::
 	}
 	
 	// add keys
-	else if( std::regex_match( input, std::regex("(add-item|mkdir)[[:s:]]([^\t]+\t?)+") ) )
+	else if( std::regex_match( input, std::regex("(add-item|add-key|mkdir)[[:s:]]([^\t]+\t?)+") ) )
 	{
 		// search terms
-		std::string term_string = std::regex_replace( input, std::regex("(add-item|mkdir)[[:s:]]"), "" );
+		std::string term_string = std::regex_replace( input, std::regex("(add-item|add-key|mkdir)[[:s:]]"), "" );
 		textdb::keys new_keys({});
 		textdb::string_to_vector( term_string, new_keys, db.delimiter() );
 		
@@ -171,9 +171,9 @@ void process_input( std::string& input, textdb& db, std::map< std::string, std::
 	}
 	
 	// add subkeys to existing keys
-	else if( std::regex_match( input, std::regex("(add-item|mkdir)[[:s:]]([^\t]+\t?)+\t\t([^\t]+\t?)+") ) )
+	else if( std::regex_match( input, std::regex("(add-item|add-key|mkdir)[[:s:]]([^\t]+\t?)+\t\t([^\t]+\t?)+") ) )
 	{
-		std::string term_string = std::regex_replace( input, std::regex("(add-item|mkdir)[[:s:]]"), "" );
+		std::string term_string = std::regex_replace( input, std::regex("(add-item|add-key|mkdir)[[:s:]]"), "" );
 		std::string key_string = std::regex_replace( term_string, std::regex("\t\t.*"), "" );
 		std::string key_new_string = std::regex_replace( term_string, std::regex(".*\t\t"), "" );
 		
@@ -275,8 +275,8 @@ ls|print|search [keys]
 ls|print|search [keys] [values]
 count|size
 add-value [keys] [values]
-add-item|mkdir [keys]
-add-item|mkdir [keys] [subkeys]
+add-item|add-key|mkdir [keys]
+add-item|add-key|mkdir [keys] [subkeys]
 rm|delete [keys]
 rm|delete [keys] [values]
 clear

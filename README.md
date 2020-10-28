@@ -2,71 +2,54 @@
 Plain text collection manager / database
 
 ## Data structure
-The data this program can work with consists of items with associated keys. Keys can have a value. Items, keys and values are strings. This is intended for keeping track of collections, but is not limited to this use. The data is stored in plain text so it can be easily edited manually or with other tools. The storage format is as follows (only tabs as separators are supported):
+The data this program can work with consists of a key-value pairs ordered as a tree. This is intended for keeping track of collections, but is not limited to this use. The data is stored in plain text so it can be easily edited manually or with other tools. The storage format is as follows (tabs as separators):
 ```
-item1
-	key1
-	key2	value
-item2
-item3
-	key1	value
+key1
+	key1.1
+	key1.2	value1
+key2
+key3	value3
+	key3.1	value3.1
+		key3.1.1	value3.1.1
 ```
 
 ## Installation
-- Install boost libraries
-- Clone the repository
+- Install a C++17 capable compiler
+- Clone this repository
 - Run
 ```
+make
 sudo make install
 ```
 
 ## Usage examples
-- Create an empty file for the collection
+Show usage information: ``text-db --help``
+
+### Loading a collection
+The program can be used interactively: ``text-db example``
+
+The program can be used from the shell: ``text-db example ls``
+
+A collection can be loaded from stdin: ``cat example | text-db - ls``
+
+### Changing a collection 
+Open the example with ``text-db example``, then type the following commands. It is important to use a single tab to separate fields in an argument and two tabs to
+separate between arguments.
+
 ```
-touch ⟨file⟩
-```
-- Show all options
-```
-text-db --help
-```
-- Add an item
-```
-text-db ⟨file⟩ --add ⟨item⟩
-```
-- Add a key
-```
-text-db ⟨file⟩ --add ⟨item⟩ ⟨key⟩
-```
-- Add a key with value associated
-```
-text-db ⟨file⟩ --add ⟨item⟩ ⟨key⟩ ⟨value⟩
-```
-- Delete an item
-```
-text-db ⟨file⟩ --delete ⟨item⟩
-```
-- Delete a key from an item
-```
-text-db ⟨file⟩ --delete ⟨item⟩ ⟨key⟩
-```
-- Show a single item
-```
-text-db ⟨file⟩ --show ⟨item⟩
-```
-- Show all items with a particular key
-```
-text-db ⟨file⟩ --with ⟨key⟩
-```
-- Show all items with a particular key-value pair
-```
-text-db ⟨file⟩ --with ⟨key⟩ ⟨value⟩
-```
-- Show all items sorted by number of keys
-```
-text-db ⟨file⟩ --show-all --item-order num-keys
+ls
+ls key3
+ls key(2|3)
+cp key1		key4
+rm key1	key1.*
+add-value key4		value4
+add-key key5	key5.1
+save
+exit
 ```
 
 ## Limitations
+- The available commands and their arguments are not final
 - When adding or deleting in a collection the whole file gets rewritten to keep the structure intact.
 - This is not a replacement for a real database, and not intended as such.
 
