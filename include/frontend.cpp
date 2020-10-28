@@ -63,7 +63,7 @@ void process_input( std::string& input, textdb& db, std::map< std::string, std::
 	// clear database
 	else if( std::regex_match( input, std::regex("clear") ) )
 	{
-		db.clear();
+		db.items().clear();
 		output << "Deleted everything\n";
 		return;
 	}
@@ -154,90 +154,50 @@ void process_input( std::string& input, textdb& db, std::map< std::string, std::
 		return;
 	}
 	
-	// add items // TODO! check if add.* is possible
-	else if( std::regex_match( input, std::regex("(add-item|mkdir).*") ) )
+	// add keys
+	else if( std::regex_match( input, std::regex("(add-item|mkdir)[[:s:]]([^\t]+\t?)+") ) )
 	{
-		try
+		// search terms
+		std::string term_string = std::regex_replace( input, std::regex("(add-item|mkdir)[[:s:]]"), "" );
+		textdb::keys new_keys({});
+		textdb::string_to_vector( term_string, new_keys, db.delimiter() );
+		
+		while( new_keys.size() >= 1 )
 		{
-			// add subitems
-			if( std::regex_match( input, std::regex("add-item[[:s:]].+\t\t.+") ) )
-			{
-				// search terms
-				std::string term_string = std::regex_replace( input, std::regex("add-item[[:s:]]"), "" );
-				std::string key_string = std::regex_replace( term_string, std::regex("\t\t.*"), "" );
-				std::string key_new_string = std::regex_replace( term_string, std::regex(".*\t\t"), "" );
-				std::vector< std::string > key_terms({}), new_keys({});
-				textdb::string_to_vector( key_string, key_terms, db.delimiter() );
-				textdb::string_to_vector( key_new_string, new_keys, db.delimiter() );
-				
-				// perform search
-				for( auto& item : db.items() )
-				{
-					if( textdb::compare_vectors_regex_exact( item.first, key_terms ) )
-					{
-						// store new keys
-						for( auto new_key : new_keys )
-						{
-							textdb::path new_path = item.first;
-							new_path.push_back( new_key );
-							
-							if( db.items().find( new_path ) == db.items().end() )
-								db.store( textdb::dbitem( new_key, {} ), item.first );
-						}
-						
-					}
-				}
-				
-				return;
-			}
-			
-			// add top-level items
-			else if( std::regex_match( input, std::regex("add-item[[:s:]].+") ) )
-			{
-				// search terms
-				std::string term_string = std::regex_replace( input, std::regex("add-item[[:s:]]"), "" );
-				std::vector< std::string > new_keys({});
-				textdb::string_to_vector( term_string, new_keys, db.delimiter() );
-				
-				for( auto& new_key : new_keys )
-				{
-					db.store( textdb::dbitem( new_key, {} ) );
-				}
-				
-				return;
-			}
-			
-			else
-			{
-				output << "Nothing to add\n";
-				return;
-			}
-			
+			db.items().try_emplace( new_keys, textdb::values() );
+			new_keys.pop_back();
 		}
-		catch( std::exception& e )
-		{
-			output << e.what() << "\n";
-			return;
-		}
+		return;
+	}
+	
+	// add subkeys to existing keys
+	else if( std::regex_match( input, std::regex("(add-item|mkdir)[[:s:]]([^\t]+\t?)+\t\t([^\t]+\t?)+") ) )
+	{
+		std::string term_string = std::regex_replace( input, std::regex("(add-item|mkdir)[[:s:]]"), "" );
+		std::string key_string = std::regex_replace( term_string, std::regex("\t\t.*"), "" );
+		std::string key_new_string = std::regex_replace( term_string, std::regex(".*\t\t"), "" );
+		
+		command_add_keys( key_string, key_new_string, db, output, (options["regex"] == "on") );
+		return;
 	}
 	
 	// delete values
 	else if( std::regex_match( input, std::regex("(rm|delete)[[:s:]]([^\t]+\t?)+\t\t([^\t]+\t?)+") ) )
 	{
 		std::string term_string = std::regex_replace( input, std::regex("(rm|delete)[[:s:]]"), "" );
-		std::string keys = std::regex_replace( term_string, std::regex("\t\t.*"), "" );
-		std::string values = std::regex_replace( term_string, std::regex(".*\t\t"), "" );
+		std::string key_string = std::regex_replace( term_string, std::regex("\t\t.*"), "" );
+		std::string value_string = std::regex_replace( term_string, std::regex(".*\t\t"), "" );
 		
-		command_delete_values( keys, values, db, output, (options["regex"] == "on") );
+		command_delete_values( key_string, value_string, db, output, (options["regex"] == "on") );
 		return;
 	}
 	
 	// delete keys
 	else if( std::regex_match( input, std::regex("(rm|delete)[[:s:]]([^\t]+\t?)+") ) )
 	{
-		std::string keys = std::regex_replace( input, std::regex("(rm|delete)[[:s:]]"), "" );
+		std::string key_string = std::regex_replace( input, std::regex("(rm|delete)[[:s:]]"), "" );
 		
-		command_delete_keys( keys, db, output, (options["regex"] == "on") );
+		command_delete_keys( key_string, db, output, (options["regex"] == "on") );
 		return;
 	}
 	
@@ -253,14 +213,30 @@ void process_input( std::string& input, textdb& db, std::map< std::string, std::
 	}
 	
 	
-	// copy keys TODO!
+	// copy keys
+	else if( std::regex_match( input, std::regex("(cp)[[:s:]]([^\t]+\t?)+\t\t([^\t]+\t?)+") ) )
+	{
+		std::string term_string = std::regex_replace( input, std::regex("(cp)[[:s:]]"), "" );
+		std::string keys_old = std::regex_replace( term_string, std::regex("\t\t.*"), "" );
+		std::string keys_new = std::regex_replace( term_string, std::regex(".*\t\t"), "" );
+		
+		command_copy_keys( keys_old, keys_new, db, output, (options["regex"] == "on") );
+		return;
+	}
 	
-	// get values TODO!
+	// get values
 	else if( std::regex_match( input, std::regex("get[[:s:]]([^\t]+\t?)+") ) )
 	{
-		std::string keys = std::regex_replace( input, std::regex("get[[:s:]]"), "" );
+		std::string key_string = std::regex_replace( input, std::regex("get[[:s:]]"), "" );
 		
-		command_show_values( keys, db, output, (options["regex"] == "on") );
+		command_show_values( key_string, db, output, (options["regex"] == "on") );
+		return;
+	}
+	
+	// export to tsv
+	else if( std::regex_match( input, std::regex("export[[:s:]]+tsv") ) )
+	{
+		db.to_tsv( output );
 		return;
 	}
 	
@@ -274,40 +250,50 @@ void process_input( std::string& input, textdb& db, std::map< std::string, std::
 	*/
 	
 	else
-		output << "Unknown command, type help for a list of available commands\n";
+		output << "Unknown command or invalid arguments, type help for a list of available commands\n";
 	
 }
 
 void command_help( std::ostream& output )
 {
-	output <<
-	"Usage:\n"
-	"text-db [FILE] [COMMAND]\tload file, optionally run command\n" <<
-	"text-db - [COMMAND]\t\tload database from stdin, optionally run command\n" <<
-	"text-db --help\t\t\tshow this message\n\n";
-	
-	output <<
-	"Available commands:\n" <<
-	"open [FILE]\t\topen a file or show the currently opened file\n" <<
-	"save [FILE]\t\tsave to specified or currently opened file\n" <<
-	"print\t\t\tshow the complete database\n" <<
-	"clear\t\t\tdelete everything in the database\n" <<
-	"count\t\t\tshow the number of items in the database\n" <<
-	"set list\t\tlist all options\n" <<
-	"set OPTION VALUE\tset an option to a value\n" <<
-	"search KEYS [VALUES]\tsearch for items, 1 tab to separate fields\n" <<
-	"\t\t\t2 tabs to separate keys and values\n" <<
-	"add-values KEYS VALUES\tadd values, 1 tab to separate fields\n" <<
-	"\t\t\t2 tabs to separate keys and values\n" <<
-	"add-items KEYS NEW_KEYS\tadd items, 1 tab to separate fields\n" <<
-	"\t\t\t2 tabs to separate keys and new keys\n" <<
-	"rm-values KEYS VALUES\tdelete values, 1 tab to separate fields\n" <<
-	"\t\t\t2 tabs to separate keys and new keys\n" <<
-	"rm-items KEYS\t\tdelete items, 1 tab to separate fields\n" <<
-	"quit\t\t\texit this program, does not save\n" <<
-	"help\t\t\tshow this message\n\n";
-	
-	output << "Licensed under the GNU GPL v3 or later\n";
+
+output << 
+R"(Usage:
+text-db FILE [COMMAND]  load file, optionally run command
+text-db - [COMMAND]     load database from stdin, optionally run command
+text-db --help          show this message
+
+Available commands:
+help
+quit|close|exit
+open|load
+open|load [file]
+save
+save [file]
+ls|print|search
+ls|print|search [keys]
+ls|print|search [keys] [values]
+count|size
+add-value [keys] [values]
+add-item|mkdir [keys]
+add-item|mkdir [keys] [subkeys]
+rm|delete [keys]
+rm|delete [keys] [values]
+clear
+mv|rename [source keys] [dest keys]
+cp [source keys] [dest keys]
+get [keys]
+option
+option [option]
+option [option] [value]
+
+Use a single tab to separate fields in an argument, use two tabs to
+separate between arguments, e.g.:
+key1  <1 tab>  key2  <2 tabs>  value1  <1 tab>  value2
+
+Licensed under the GNU GPL v3 or later
+)";
+
 }
 
 void command_count( std::ostream& output, textdb& db )
@@ -345,7 +331,7 @@ void command_search_by_key( std::string& keys, textdb& db, std::ostream& output,
 		
 		// print results
 		for( auto& r : results )
-			db.print_item( output, use_color, textdb::path({r}) );
+			db.print( output, use_color, textdb::keys({r}) );
 		
 	}
 	catch( std::exception& e )
@@ -382,7 +368,7 @@ void command_search_by_key_value( std::string& keys, std::string& values, textdb
 				for( auto value_term : value_terms )
 				{
 					// iterate over item values
-					for( auto value : item.second.values() )
+					for( auto value : item.second )
 					{
 						// check value
 						if( use_regex ? std::regex_match( value, std::regex(value_term) ) : (value == value_term) )
@@ -405,7 +391,7 @@ void command_search_by_key_value( std::string& keys, std::string& values, textdb
 		
 		// print results
 		for( auto& r : results )
-			db.print_item( output, use_color, textdb::path({r}) );
+			db.print( output, use_color, textdb::keys({r}) );
 		
 	}
 	catch( std::exception& e )
@@ -426,7 +412,7 @@ void command_load_file( std::string& filename, textdb& db, std::map< std::string
 	}
 	
 	options["file"] = filename;
-	db.clear();
+	db.items().clear();
 	db.load( infile );
 	infile.close();
 }
@@ -445,14 +431,14 @@ void command_save_file( std::string& filename, textdb& db, std::ostream& output 
 	outfile.close();
 }
 
-void command_add_values( std::string& keys, std::string& values, textdb& db, std::ostream& output, bool use_regex )
+void command_add_values( std::string& key_string, std::string& value_string, textdb& db, std::ostream& output, bool use_regex )
 {
 	try
 	{
 		// search terms
 		std::vector< std::string > key_terms({}), value_terms({});
-		textdb::string_to_vector( keys, key_terms, db.delimiter() );
-		textdb::string_to_vector( values, value_terms, db.delimiter() );
+		textdb::string_to_vector( key_string, key_terms, db.delimiter() );
+		textdb::string_to_vector( value_string, value_terms, db.delimiter() );
 		
 		// perform search
 		for( auto& item : db.items() )
@@ -462,8 +448,8 @@ void command_add_values( std::string& keys, std::string& values, textdb& db, std
 				// store values: iterate over value terms
 				for( auto value_term : value_terms )
 				{
-					if( std::find( item.second.values().begin(), item.second.values().end(), value_term ) == item.second.values().end() )
-						item.second.values().push_back( value_term );
+					if( std::find( item.second.begin(), item.second.end(), value_term ) == item.second.end() )
+						item.second.push_back( value_term );
 				}
 			}
 		}
@@ -475,15 +461,47 @@ void command_add_values( std::string& keys, std::string& values, textdb& db, std
 	}
 }
 
-void command_delete_keys( std::string& keys, textdb& db, std::ostream& output, bool use_regex )
+void command_add_keys( std::string& key_string, std::string& key_new_string, textdb& db, std::ostream& output, bool use_regex )
+{
+	try
+	{
+		std::vector< std::string > key_terms({}), new_keys({});
+		textdb::string_to_vector( key_string, key_terms, db.delimiter() );
+		textdb::string_to_vector( key_new_string, new_keys, db.delimiter() );
+		
+		// perform search
+		for( auto& item : db.items() )
+		{
+			if( use_regex ? textdb::compare_vectors_regex_exact( item.first, key_terms ) : textdb::compare_vectors_exact( item.first, key_terms ) )
+			{
+				// store new keys
+				for( auto new_key : new_keys )
+				{
+					textdb::keys new_path = item.first;
+					new_path.push_back( new_key );
+					
+					db.items().emplace( new_path, textdb::values() ); //?
+				}
+				
+			}
+		}
+	}
+	catch( std::exception& e )
+	{
+		output << e.what() << "\n";
+		return;
+	}
+}
+
+void command_delete_keys( std::string& key_string, textdb& db, std::ostream& output, bool use_regex )
 {
 	try
 	{
 		// search terms
 		std::vector< std::string > deletion_keys({});
-		textdb::string_to_vector( keys, deletion_keys, db.delimiter() );
+		textdb::string_to_vector( key_string, deletion_keys, db.delimiter() );
 		
-		std::vector< textdb::path > results;
+		std::vector< textdb::keys > results;
 		
 		// iterate over items
 		for( auto& item : db.items() )
@@ -504,14 +522,14 @@ void command_delete_keys( std::string& keys, textdb& db, std::ostream& output, b
 	}
 }
 
-void command_delete_values( std::string& keys, std::string& values, textdb& db, std::ostream& output, bool use_regex )
+void command_delete_values( std::string& key_string, std::string& value_string, textdb& db, std::ostream& output, bool use_regex )
 {
 	try
 	{
 		// search terms
 		std::vector< std::string > key_terms({}), value_terms({});
-		textdb::string_to_vector( keys, key_terms, db.delimiter() );
-		textdb::string_to_vector( values, value_terms, db.delimiter() );
+		textdb::string_to_vector( key_string, key_terms, db.delimiter() );
+		textdb::string_to_vector( value_string, value_terms, db.delimiter() );
 		
 		// perform search, iterate over items
 		for( auto& item : db.items() )
@@ -522,7 +540,7 @@ void command_delete_values( std::string& keys, std::string& values, textdb& db, 
 			if( use_regex ? textdb::compare_vectors_regex_exact( item.first, key_terms ) : textdb::compare_vectors_exact( item.first, key_terms ) )
 			{
 				// delete values: iterate over item values
-				for( auto& value : item.second.values() )
+				for( auto& value : item.second )
 				{
 					// iterate over item value terms
 					for( auto& value_term : value_terms )
@@ -539,7 +557,7 @@ void command_delete_values( std::string& keys, std::string& values, textdb& db, 
 			
 			// delete values stored in results
 			for( auto& r : results )
-				item.second.values().erase( std::find( item.second.values().begin(), item.second.values().end(), r ) );
+				item.second.erase( std::find( item.second.begin(), item.second.end(), r ) );
 			
 		}
 	}
@@ -550,7 +568,7 @@ void command_delete_values( std::string& keys, std::string& values, textdb& db, 
 	}
 }
 
-void command_rename_keys( std::string& keys_old, std::string& keys_new, textdb& db, std::ostream& output, bool use_regex ) // TODO!
+void command_rename_keys( std::string& keys_old, std::string& keys_new, textdb& db, std::ostream& output, bool use_regex )
 {
 	try
 	{
@@ -559,8 +577,11 @@ void command_rename_keys( std::string& keys_old, std::string& keys_new, textdb& 
 		textdb::string_to_vector( keys_old, old_key_terms, db.delimiter() );
 		textdb::string_to_vector( keys_new, new_key_terms, db.delimiter() );
 		
-		std::vector< textdb::path > results_delete; // the old keys for deletion
+		std::vector< textdb::keys > results_delete; // the old keys for deletion
 		textdb results_add; // the new key-value pairs
+		
+		// delete already existing target
+		command_delete_keys( keys_new, db, output, false );
 		
 		// iterate over items
 		for( auto& item : db.items() )
@@ -570,15 +591,18 @@ void command_rename_keys( std::string& keys_old, std::string& keys_new, textdb& 
 				results_delete.push_back( item.first );
 				
 				// build new path
-				textdb::path new_path = new_key_terms;
-				for( size_t i = keys_old.size() - 1; i < item.first.size(); i++ )
+				textdb::keys new_path = new_key_terms;
+				for( size_t i = old_key_terms.size(); i < item.first.size(); i++ )
 					new_path.push_back( item.first.at(i) );
+				results_add.items().emplace( new_path, item.second );
 				
-				// new key (last element of the path)
-				std::string new_key = new_path.back();
-				new_path.pop_back();
+				// create new parent items as required
+				while( new_path.size() > 0 ){
+					results_add.items().try_emplace( new_path, textdb::values() );
+					new_path.pop_back();
+				}
 				
-				results_add.store( textdb::dbitem( new_key, item.second.values() ), new_path );
+				
 			}
 		}
 		
@@ -587,7 +611,54 @@ void command_rename_keys( std::string& keys_old, std::string& keys_new, textdb& 
 			db.items().erase( r );
 		
 		// add new items
-		db.items().merge( results_add.items() );
+		// db.items().merge( results_add.items() );
+		for( auto& r : results_add.items() )
+			db.items().insert_or_assign( r.first, r.second );
+		
+	}
+	catch( std::exception& e )
+	{
+		output << e.what() << "\n";
+		return;
+	}
+}
+
+void command_copy_keys( std::string& keys_old, std::string& keys_new, textdb& db, std::ostream& output, bool use_regex )
+{
+	try
+	{
+		// search terms
+		std::vector< std::string > old_key_terms({}), new_key_terms({});
+		textdb::string_to_vector( keys_old, old_key_terms, db.delimiter() );
+		textdb::string_to_vector( keys_new, new_key_terms, db.delimiter() );
+		
+		textdb results_add; // the new key-value pairs
+		
+		// iterate over items
+		for( auto& item : db.items() )
+		{
+			if( use_regex ? textdb::compare_vectors_regex( item.first, old_key_terms ) : textdb::compare_vectors( item.first, old_key_terms ) )
+			{
+				// build new path
+				textdb::keys new_path = new_key_terms;
+				for( size_t i = old_key_terms.size(); i < item.first.size(); i++ )
+					new_path.push_back( item.first.at(i) );
+				results_add.items().emplace( new_path, item.second );
+				
+				// create new parent items as required
+				while( new_path.size() > 0 ){
+					results_add.items().try_emplace( new_path, textdb::values() );
+					new_path.pop_back();
+				}
+				
+				
+			}
+		}
+		
+		// add new items
+		// db.items().merge( results_add.items() );
+		for( auto& r : results_add.items() )
+			db.items().insert_or_assign( r.first, r.second );
 		
 	}
 	catch( std::exception& e )
@@ -609,8 +680,13 @@ void command_show_values( std::string& keys, textdb& db, std::ostream& output, b
 		for( auto& item : db.items() )
 		{
 			if( use_regex ? textdb::compare_vectors_regex_exact( item.first, deletion_keys ) : textdb::compare_vectors_exact( item.first, deletion_keys ) ){
-				for( auto& value : item.second.values() )
-					output << value << "\t"; // TODO! no trailing \t
+				
+				size_t size = item.second.size();
+				for( auto& value : item.second )
+				{
+					output << value << ((size > 1) ? "\t" : "");
+					size--;
+				}
 				output << "\n";
 			}
 		}

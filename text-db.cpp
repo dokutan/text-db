@@ -67,7 +67,7 @@ int main( int argc, char* argv[] )
 		// load database from stdin
 		else if( strcmp( argv[1], "-" ) == 0 )
 		{
-			db.clear();
+			db.items().clear();
 			db.load( std::cin );
 		}
 		
@@ -82,7 +82,7 @@ int main( int argc, char* argv[] )
 			}
 			
 			options["file"] = argv[1];
-			db.clear();
+			db.items().clear();
 			db.load( infile );
 			infile.close();
 		}

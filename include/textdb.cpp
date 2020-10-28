@@ -20,22 +20,6 @@
 
 #include "textdb.h"
 
-int textdb::store( textdb::dbitem item )
-{
-	_items.emplace( path({item.key()}), item );
-	return 0;
-}
-
-int textdb::store( textdb::dbitem item, const textdb::path& parent )
-{
-	path newpath = parent;
-	newpath.push_back( item.key() );
-	
-	_items.emplace( newpath, item );
-	
-	return 0;
-}
-
 void textdb::print( std::ostream& output, bool color )
 {
 	// print all items
@@ -54,7 +38,7 @@ void textdb::print( std::ostream& output, bool color )
 		output << color_key << item.first.back() << color_reset;
 		
 		// values
-		for( auto value : item.second.values() )
+		for( auto value : item.second )
 			output << _delimiter << color_value << value << color_reset;
 		
 		output << std::endl;
@@ -62,12 +46,12 @@ void textdb::print( std::ostream& output, bool color )
 	
 }
 
-void textdb::print_item( std::ostream& output, bool color, const path& itempath )
+void textdb::print( std::ostream& output, bool color, const keys& item_keys )
 {
 	// iterate over all items
 	for( auto item : _items )
 	{
-		if( !compare_vectors( item.first, itempath ) )
+		if( !compare_vectors( item.first, item_keys ) )
 			continue;
 		
 		// determine correct escape codes for color
@@ -83,7 +67,7 @@ void textdb::print_item( std::ostream& output, bool color, const path& itempath 
 		output << color_key << item.first.back() << color_reset;
 		
 		// values
-		for( auto value : item.second.values() )
+		for( auto value : item.second )
 			output << _delimiter << color_value << value << color_reset;
 		
 		output << std::endl;
@@ -94,17 +78,24 @@ void textdb::print_item( std::ostream& output, bool color, const path& itempath 
 void textdb::load( std::istream& input )
 {
 	
-	path buffer_path({""});
+	keys temp_keys({""});
 	
 	// iterate over file
 	for( std::string line; std::getline( input, line, '\n' ); )
 	{
+		
+		// variables
+		unsigned int depth = 0;
+		std::vector< std::string > line_parts;
+		std::string item_key_last;
+		values item_values;
+		
 		// empty line? → skip
 		if( line.size() == 0 )
 			continue;
 		
 		// get depth
-		unsigned int depth = count_char_at_front( line, _delimiter );
+		depth = count_char_at_front( line, _delimiter );
 		
 		// remove leading delimiters from line
 		while( 1 )
@@ -115,59 +106,47 @@ void textdb::load( std::istream& input )
 				break;
 		}
 		
-		// split line → key + values
-		std::vector< std::string > parts;
-		string_to_vector( line, parts, _delimiter );
+		// split line: last element of the key + values
+		string_to_vector( line, line_parts, _delimiter );
 		
-		// sanity check
-		if( parts.size() == 0 )
+		// sanity check, there has to be at least one element in the vector (key)
+		if( line_parts.size() == 0 )
 			continue;
 		
-		std::string item_key = parts.at(0); // key
-		parts.erase( parts.begin() ); // values
-		
-		// path for current item
-		path item_path;
+		// last element of the key
+		item_key_last = line_parts.at(0);
+		// values
+		item_values = values( line_parts.begin()+1, line_parts.end() );
 		
 		// new item has same parent as previous item
-		if( depth+1 == buffer_path.size() )
+		if( depth+1 == temp_keys.size() )
 		{
-			if( buffer_path.size() == 0 )
-				buffer_path.push_back( item_key );
+			if( temp_keys.size() == 0 )
+				temp_keys.push_back( item_key_last );
 			else
-				buffer_path.back() = item_key;
+				temp_keys.back() = item_key_last;
 			
-			item_path = buffer_path;
-			_items.emplace( buffer_path, dbitem(item_key, parts) );
+			//item_keys = temp_keys;
+			_items.emplace( temp_keys, item_values );
 		}
 		
 		// new item is child of previous item
-		else if( depth+1 == buffer_path.size()+1 )
+		else if( depth == temp_keys.size() )
 		{
-			buffer_path.push_back( item_key );
-			item_path = buffer_path;
-			_items.emplace( buffer_path, dbitem(item_key, parts) );
+			temp_keys.push_back( item_key_last );
+			_items.emplace( temp_keys, item_values );
 		}
 		
 		// new item is somewhere above previous item
-		else if( depth+1 < buffer_path.size() )
+		else if( depth+1 < temp_keys.size() )
 		{
-			for( unsigned int i = 0; i < depth; i++ )
-				item_path.push_back( buffer_path.at(i) );
-			
-			item_path.push_back( item_key );
-			buffer_path = item_path;
-			
-			_items.emplace( buffer_path, dbitem(item_key, parts) );
+			temp_keys.erase( temp_keys.begin()+depth, temp_keys.end() );
+			temp_keys.push_back( item_key_last );
+			_items.emplace( temp_keys, item_values );
 		}
 		
 	}
-	
-}
-
-void textdb::clear()
-{
-	_items.clear();
+		
 }
 
 void textdb::to_graphviz( std::ostream& output )
@@ -226,4 +205,16 @@ void textdb::to_graphviz( std::ostream& output )
 	output << "}\n";
 	
 	
+}
+
+void textdb::to_tsv( std::ostream& output )
+{
+	for( auto& i : _items )
+	{
+		for( auto& k : i.first )
+			output << k << "\t";
+		for( auto& v : i.second )
+			output << "\t" << v;
+		output << std::endl;
+	}
 }

@@ -88,7 +88,6 @@ bool textdb::compare_vectors_regex( std::vector< std::string > v1, std::vector< 
 	return true;
 }
 
-// TODO! rename → *_size
 bool textdb::compare_vectors_regex_exact( std::vector< std::string > v1, std::vector< std::string > v2 )
 {
 	if( v2.size() != v1.size() )

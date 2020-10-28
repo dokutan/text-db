@@ -27,6 +27,7 @@
 #include <sstream>
 #include <utility>
 #include <map>
+#include <set>
 #include <memory>
 #include <regex>
 
@@ -66,42 +67,39 @@ class textdb
 	
 	public:
 		
-		/// The item class
-		class dbitem;
+		/// The keys (as a path) used to identify values
+		typedef std::vector< std::string > keys;
 		
-		/// The path used to identify items
-		typedef std::vector< std::string > path;
+		/// The values type, holds values associated with a single key
+		//typedef std::set< std::string > values;
+		typedef std::vector< std::string > values;
 		
 		/// Returns a reference to the _items map
-		std::map< path, dbitem >& items() { return _items; }
-		/// Returns a reference to _delimiter
+		std::map< keys, values >& items() { return _items; }
+		/// Returns _delimiter
 		char delimiter() { return _delimiter; }
-		
-		/// Store a top-level item in the database
-		int store( textdb::dbitem item ); // TODO!: merge/replace
-		/// Store an item in the database
-		int store( textdb::dbitem item, const path& parent ); // TODO!: merge/replace
 		
 		/// Print everything
 		void print( std::ostream& output, bool color );
-		void print_item( std::ostream& output, bool color, const path& itempath );
+		/// Print specified key
+		void print( std::ostream& output, bool color, const keys& item_keys );
 		
 		/// Load a database from a file
 		void load( std::istream& input ); // TODO!: merge/replace
 		
-		/// Delete the contents of the database
-		void clear();
-		
 		/// Export database in graphviz format
 		void to_graphviz( std::ostream& output );
 		
+		/// Export database in tsv format
+		void to_tsv( std::ostream& output );
+		
 	private:
+		
+		/// All items
+		std::map< keys, values > _items;
 		
 		/// The delimiter used in the file
 		char _delimiter = '\t';
-		
-		/// All items
-		std::map< path, dbitem > _items;
 		
 		std::map< std::string, std::string > _colors =
 		{
@@ -113,29 +111,6 @@ class textdb
 			{ "reset", "\e[0m" }
 			
 		};
-	
-};
-
-/// This class represents an item
-class textdb::dbitem
-{
-	
-	public:
-		
-		/// Constructor
-		dbitem( std::string key, std::vector< std::string > values );
-		/// Empty constructor
-		dbitem();
-		
-		/// Return a reference to the key of this item
-		std::string& key() { return _key; };
-		/// Return a reference to the values of this item
-		std::vector< std::string >& values() { return _values; };
-			
-	private:
-		
-		std::string _key;
-		std::vector< std::string > _values;
 	
 };
 

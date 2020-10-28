@@ -76,7 +76,13 @@ void command_delete_values( std::string& keys, std::string& values, textdb& db, 
 /// Move or rename the specified keys
 void command_rename_keys( std::string& keys_old, std::string& keys_new, textdb& db, std::ostream& output, bool use_regex );
 
+/// Copy the specified keys
+void command_copy_keys( std::string& keys_old, std::string& keys_new, textdb& db, std::ostream& output, bool use_regex );
+
 /// Show the values of the specified keys
 void command_show_values( std::string& keys, textdb& db, std::ostream& output, bool use_regex );
+
+/// Add keys as subkeys of existing keys
+void command_add_keys( std::string& key_string, std::string& key_new_string, textdb& db, std::ostream& output, bool use_regex );
 
 #endif

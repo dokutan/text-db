@@ -7,7 +7,7 @@ CC_OPTIONS := -Wall -Wextra -O2 -std=c++17
 VERSION_STRING = "\"0.1α\""
 
 # compile
-build: text-db.o textdb.o dbitem.o utils.o frontend.o
+build: text-db.o textdb.o utils.o frontend.o
 	$(CC) *.o -o text-db $(CC_OPTIONS)
 
 install:
@@ -25,9 +25,6 @@ text-db.o:
 
 textdb.o:
 	$(CC) -c include/textdb.cpp $(CC_OPTIONS)
-
-dbitem.o:
-	$(CC) -c include/dbitem.cpp $(CC_OPTIONS)
 
 utils.o:
 	$(CC) -c include/utils.cpp $(CC_OPTIONS)
