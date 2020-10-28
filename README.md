@@ -49,8 +49,7 @@ exit
 ```
 
 ## Limitations
-- The available commands and their arguments are not final
-- When adding or deleting in a collection the whole file gets rewritten to keep the structure intact.
+- The available commands and their arguments are not final.
 - This is not a replacement for a real database, and not intended as such.
 
 ## License
